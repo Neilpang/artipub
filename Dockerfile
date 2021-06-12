@@ -1,18 +1,12 @@
-FROM jelastic/nodejs:8.16.1-npm AS frontend
-
+FROM jelastic/nodejs:14.16.0-npm
+RUN yum install -y nginx && yum clean all
 WORKDIR /app
-ADD . /app
-RUN npm install
-RUN npm run build
+ADD ./frontend/dist /frontend
+ADD ./backend ./docker_init.sh ./nginx /app/
+RUN cp /app/artipub.conf /etc/nginx/conf.d/artipub.conf
+RUN npm install 
+RUN npm run build-nomap
 
-FROM jelastic/nodejs:8.16.1-npm
-
-WORKDIR /app
-ADD . /app
-COPY --from=frontend /app/dist /frontend
-RUN cp ./backend/package.json .
-RUN npm install
-RUN yum install -y nginx
-RUN cp /app/nginx/artipub.conf /etc/nginx/conf.d
-
+EXPOSE 3000 8000
 CMD /app/docker_init.sh
+
